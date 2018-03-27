@@ -3,7 +3,7 @@ My custom Logging addon for Python native logging library, using SQLite and my [
 
 ## Example of use
 
-```python3
+```python
 from Logging import logging, create_logger
 
 mylog = create_logger(
