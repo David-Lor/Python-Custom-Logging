@@ -1,5 +1,5 @@
 # Python-Custom-Logging
-My custom Logging addon for Python native logging library, using SQLite and my (custom SQLite-DBManager)[https://github.com/EnforcerZhukov/Python-SQLite-DBManager]
+My custom Logging addon for Python native logging library, using SQLite and my [https://github.com/EnforcerZhukov/Python-SQLite-DBManager](custom SQLite-DBManager)
 
 ## Example of use
 
