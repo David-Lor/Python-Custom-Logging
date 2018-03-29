@@ -56,17 +56,17 @@ class DatabaseLog(logging.Handler):
         ), commit=False)
     
     def _commit_service(self, stopEvent, frequency):
-        while not self.stopEvent.isSet():
+        while not stopEvent.isSet():
             self.db.commit()
-            self.stopEvent.wait(timeout=frequency)
+            stopEvent.wait(timeout=frequency)
     
     def start_commit_service(self, frequency=5):
         self._commit_service_stopEvent.clear()
         self._commit_service_thread = threading.Thread(
             target=self._commit_service,
-            args=(self._commit_service_stopEvent, frequency)
+            args=(self._commit_service_stopEvent, frequency),
+            daemon=True
         )
-        self._commit_service_thread.daemon = True
         self._commit_service_thread.start()
     
     def stop_commit_service(self):
