@@ -1,9 +1,10 @@
 
 #Native libraries
 import logging
-import time
-#Own modules
+import threading
+import atexit
 from datetime import datetime
+#Own modules
 from Databases import Database
 
 # We store opened databases on the following dict
@@ -18,6 +19,10 @@ class DatabaseLog(logging.Handler):
         :param datetime_format: Format of Datetime fields on database (default: %y-%m-%d %H:%M:%S)
         """
         logging.Handler.__init__(self)
+        self.datetime_format = datetime_format
+        #Commit service thread
+        self._commit_service_stopEvent = threading.Event()
+        self._commit_service_thread = None
         if db_name in databases: #Don't create new SQLite object/connection if it's already running
             self.db = databases[db_name]
         else:
@@ -31,7 +36,12 @@ class DatabaseLog(logging.Handler):
                 text TEXT NOT NULL
             )""")
             databases[db_name] = self.db
-        self.datetime_format = datetime_format
+            #Commit service thread
+            self.start_commit_service()
+            @atexit.register
+            def atexit_f():
+                self.stop_commit_service()
+                self.db.commit()
 
     def emit(self, record):
         """This method will be called by logging when a new log is created.
@@ -43,5 +53,29 @@ class DatabaseLog(logging.Handler):
             record.levelname, #level
             record.funcName, #function
             record.msg, #text
-        ))
+        ), commit=False)
+    
+    def _commit_service(self, frequency):
+        while not self._commit_service_stopEvent.isSet():
+            self.db.commit()
+            self._commit_service_stopEvent.wait(timeout=5)
+    
+    def start_commit_service(self, frequency=5):
+        self._commit_service_stopEvent.clear()
+        self._commit_service_thread = threading.Thread(
+            target=self._commit_service,
+            args=(frequency,)
+        )
+        self._commit_service_thread.daemon = True
+        self._commit_service_thread.start()
+    
+    def stop_commit_service(self):
+        if self.is_commit_service_running():
+            self._commit_service_stopEvent.set()
+        self._commit_service_thread.join(timeout=2)
+
+    def is_commit_service_running(self):
+        if self._commit_service_thread is None:
+            return False
+        return self._commit_service_thread.is_alive()
 
