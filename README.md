@@ -7,8 +7,8 @@ My custom Logging addon for Python native logging library, using SQLite and my [
 from Logging import logging, create_logger
 
 mylog = create_logger(
-    name="PyBuses",
-    db_name="Databases/VigoBusLog.sqlite",
+    name="MyFirstCustomLog",
+    db_name="Databases/Logs.sqlite",
     db_level=logging.DEBUG,
     print_level=logging.DEBUG
 )
